@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vishwa Sivamurugan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#fff;--ink:#0a0a0f;--muted:#6b6b7b;--line:#ececf1;--soft:#f6f6f9;--accent:#6d28d9;--accent2:#e11d74;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+a{color:inherit;text-decoration:none}
+.app{height:100%;display:flex;flex-direction:column;position:relative}
+.app::before{content:"";position:absolute;inset:0;background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:26px 26px;mask-image:radial-gradient(ellipse at 50% 45%,#000 20%,transparent 75%);-webkit-mask-image:radial-gradient(ellipse at 50% 45%,#000 20%,transparent 75%);pointer-events:none}
+nav{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:20px 32px}
+.logo{font:500 15px "JetBrains Mono",monospace}
+.logo b{color:var(--accent)}
+.tabs{display:flex;gap:4px;padding:4px;background:var(--soft);border:1px solid var(--line);border-radius:99px}
+.tabs a{font-size:14px;font-weight:500;padding:7px 18px;border-radius:99px;color:var(--muted);transition:.2s}
+.tabs a:hover{color:var(--ink)}
+.tabs a.on{background:var(--ink);color:#fff}
+main{position:relative;flex:1;min-height:0}
+.view{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:16px 32px 32px;overflow-y:auto}
+.view.on{display:flex;animation:in .45s ease}
+@keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.in{width:100%;max-width:880px;margin:auto}
+.mono{font-family:"JetBrains Mono",monospace}
+.hello{font:400 15px "JetBrains Mono",monospace;color:var(--muted);margin-bottom:14px}
+.hello i{color:var(--accent);font-style:normal}
+h1{font-size:clamp(38px,8.2vw,88px);font-weight:800;letter-spacing:-.045em;line-height:1.02;margin:0 0 20px;min-height:1.05em}
+.caret{display:inline-block;width:.07em;height:.85em;background:var(--accent);margin-left:6px;vertical-align:-.04em;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.role{font-size:clamp(17px,2.4vw,22px);font-weight:500;margin:0 0 14px}
+.role span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.about{max-width:620px;color:var(--muted);margin:0 0 28px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:12px;font-weight:600;font-size:15px;border:1px solid var(--line);background:#fff;transition:.2s}
+.btn:hover{transform:translateY(-2px);border-color:var(--ink)}
+.btn.pri{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn.pri:hover{background:var(--accent);border-color:var(--accent)}
+.eyebrow{font:500 13px "JetBrains Mono",monospace;color:var(--accent);margin-bottom:10px}
+h2{font-size:clamp(30px,5vw,48px);font-weight:800;letter-spacing:-.035em;line-height:1.1;margin:0 0 28px}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:0 1px 2px rgba(10,10,15,.04),0 12px 32px -16px rgba(10,10,15,.12);transition:.25s}
+.proj{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:start;max-width:640px}
+.proj:hover{transform:translateY(-4px);border-color:var(--accent)}
+.chip{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.chip svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.proj h3{font-size:22px;letter-spacing:-.02em;margin:2px 0 8px}
+.proj p{margin:0 0 16px;color:var(--muted);font-size:15px}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tags span{font:500 12px "JetBrains Mono",monospace;padding:4px 10px;border-radius:8px;background:var(--soft);border:1px solid var(--line);color:var(--muted)}
+.soon{display:inline-flex;align-items:center;gap:10px;font:500 15px "JetBrains Mono",monospace;padding:12px 18px;border:1px dashed #c9c9d6;border-radius:12px;color:var(--muted)}
+.soon i{width:8px;height:8px;border-radius:50%;background:var(--accent2);animation:blink 1.4s steps(1) infinite}
+.sub{color:var(--muted);max-width:480px;margin:0 0 24px}
+@media(max-width:600px){nav{padding:14px 16px}.logo{display:none}.tabs{width:100%;justify-content:space-between}.tabs a{padding:7px 12px;font-size:13px}.view{padding:12px 20px 24px}.proj{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<nav>
+  <a class="logo" href="#home">~/vishwa<b>_</b></a>
+  <div class="tabs">
+    <a href="#home" data-v="home">Home</a><a href="#projects" data-v="projects">Projects</a><a href="#research" data-v="research">Research</a><a href="#contact" data-v="contact">Contact</a>
+  </div>
+</nav>
+<main>
+  <section class="view" id="home"><div class="in">
+    <div class="hello"><i>&gt;</i> hello, world. I’m</div>
+    <h1><span id="type"></span><span class="caret"></span></h1>
+    <p class="role"><span>Biomedical Engineering</span> · Third Year UG · SSN College of Engineering</p>
+    <p class="about">I’m an undergraduate biomedical engineer in Chennai, interested in embedded systems, biomedical signals and the electronics behind medical devices. I like building things that make healthcare technology more accessible.</p>
+    <div class="cta"><a class="btn pri" href="#projects">View projects →</a><a class="btn" href="#contact">Contact me</a></div>
+  </div></section>
+
+  <section class="view" id="projects"><div class="in">
+    <div class="eyebrow">// projects</div>
+    <h2>Things I’ve built.</h2>
+    <article class="card proj">
+      <div class="chip"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></div>
+      <div>
+        <h3>PIC16F877A Simulator</h3>
+        <p>A simulator for the PIC16F877A 8-bit microcontroller.</p>
+        <div class="tags"><span>PIC16F877A</span><span>Embedded</span><span>Simulation</span></div>
+      </div>
+    </article>
+  </div></section>
+
+  <section class="view" id="research"><div class="in">
+    <div class="eyebrow">// research</div>
+    <h2>Research</h2>
+    <div class="soon"><i></i>Coming soon</div>
+  </div></section>
+
+  <section class="view" id="contact"><div class="in">
+    <div class="eyebrow">// contact</div>
+    <h2>Let’s connect.</h2>
+    <p class="sub">Open to internships, research and collaborations. The best way to reach me is on LinkedIn.</p>
+    <div class="cta"><a class="btn pri" href="https://www.linkedin.com/in/vishwa-siva/" target="_blank" rel="noopener">LinkedIn · vishwa-siva ↗</a></div>
+  </div></section>
+</main>
+</div>
+<script>
+(function(){
+  var views=['home','projects','research','contact'];
+  function show(){
+    var h=(location.hash||'').replace('#','');
+    if(views.indexOf(h)<0)h='home';
+    views.forEach(function(v){
+      document.getElementById(v).classList.toggle('on',v===h);
+      document.querySelector('[data-v="'+v+'"]').classList.toggle('on',v===h);
+    });
+    if(h==='home')typeName();
+  }
+  var name='Vishwa Sivamurugan',el=document.getElementById('type'),timer=null,done=false;
+  function typeName(){
+    clearTimeout(timer);
+    if(done||window.matchMedia('(prefers-reduced-motion: reduce)').matches){el.textContent=name;return}
+    var i=0;el.textContent='';
+    (function step(){
+      el.textContent=name.slice(0,++i);
+      if(i<name.length)timer=setTimeout(step,70+Math.random()*70);else done=true;
+    })();
+  }
+  window.addEventListener('hashchange',show);
+  show();
+})();
+</script>
+</body>
+</html>
