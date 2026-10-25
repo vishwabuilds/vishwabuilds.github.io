@@ -27,7 +27,6 @@ main{position:relative;flex:1;min-height:0}
 .view.on{display:flex;animation:in .45s ease}
 @keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .in{width:100%;max-width:880px;margin:auto}
-.mono{font-family:"JetBrains Mono",monospace}
 .hello{font:400 15px "JetBrains Mono",monospace;color:var(--muted);margin-bottom:14px}
 .hello i{color:var(--accent);font-style:normal}
 h1{font-size:clamp(38px,8.2vw,88px);font-weight:800;letter-spacing:-.045em;line-height:1.02;margin:0 0 20px;min-height:1.05em}
@@ -44,11 +43,12 @@ h1{font-size:clamp(38px,8.2vw,88px);font-weight:800;letter-spacing:-.045em;line-
 .eyebrow{font:500 13px "JetBrains Mono",monospace;color:var(--accent);margin-bottom:10px}
 h2{font-size:clamp(30px,5vw,48px);font-weight:800;letter-spacing:-.035em;line-height:1.1;margin:0 0 28px}
 .card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:0 1px 2px rgba(10,10,15,.04),0 12px 32px -16px rgba(10,10,15,.12);transition:.25s}
-.proj{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:start;max-width:640px}
+.projs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.proj{display:flex;flex-direction:column;gap:18px}
 .proj:hover{transform:translateY(-4px);border-color:var(--accent)}
-.chip{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.chip{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2))}
 .chip svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.proj h3{font-size:22px;letter-spacing:-.02em;margin:2px 0 8px}
+.proj h3{font-size:22px;letter-spacing:-.02em;margin:0 0 8px}
 .proj p{margin:0 0 16px;color:var(--muted);font-size:15px}
 .tags{display:flex;gap:6px;flex-wrap:wrap}
 .tags span{font:500 12px "JetBrains Mono",monospace;padding:4px 10px;border-radius:8px;background:var(--soft);border:1px solid var(--line);color:var(--muted)}
@@ -56,7 +56,7 @@ h2{font-size:clamp(30px,5vw,48px);font-weight:800;letter-spacing:-.035em;line-he
 .soon{display:inline-flex;align-items:center;gap:10px;font:500 15px "JetBrains Mono",monospace;padding:12px 18px;border:1px dashed #c9c9d6;border-radius:12px;color:var(--muted)}
 .soon i{width:8px;height:8px;border-radius:50%;background:var(--accent2);animation:blink 1.4s steps(1) infinite}
 .sub{color:var(--muted);max-width:480px;margin:0 0 24px}
-@media(max-width:600px){nav{padding:14px 16px}.logo{display:none}.tabs{width:100%;justify-content:space-between}.tabs a{padding:7px 12px;font-size:13px}.view{padding:12px 20px 24px}.proj{grid-template-columns:1fr}}
+@media(max-width:600px){nav{padding:14px 16px}.logo{display:none}.tabs{width:100%;justify-content:space-between}.tabs a{padding:7px 12px;font-size:13px}.view{padding:12px 20px 24px}.projs{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
@@ -80,15 +80,26 @@ h2{font-size:clamp(30px,5vw,48px);font-weight:800;letter-spacing:-.035em;line-he
   <section class="view" id="projects"><div class="in">
     <div class="eyebrow">// projects</div>
     <h2>Things I’ve built.</h2>
-    <a class="card proj" href="https://vishwabuilds.github.io/pic_trainer/" target="_blank" rel="noopener">
-      <div class="chip"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></div>
-      <div>
-        <h3>PIC16F877A Simulator</h3>
-        <p>A simulator for the PIC16F877A 8-bit microcontroller.</p>
-        <div class="tags"><span>PIC16F877A</span><span>Embedded</span><span>Simulation</span></div>
-        <div class="go">MPLAB IDE v8.30 - PIC16xx-IES Practice ↗</div>
-      </div>
-    </a>
+    <div class="projs">
+      <a class="card proj" href="https://vishwabuilds.github.io/pic_trainer/" target="_blank" rel="noopener">
+        <div class="chip"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></div>
+        <div>
+          <h3>PIC16F877A Simulator</h3>
+          <p>A simulator for the PIC16F877A 8-bit microcontroller.</p>
+          <div class="tags"><span>PIC16F877A</span><span>Embedded</span><span>Simulation</span></div>
+          <div class="go">MPLAB IDE v8.30 - PIC16xx-IES Practice ↗</div>
+        </div>
+      </a>
+      <a class="card proj" href="https://vishwabuilds.github.io/win51_simulator/" target="_blank" rel="noopener">
+        <div class="chip"><svg viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg></div>
+        <div>
+          <h3>Win51E 8051 Simulator</h3>
+          <p>An assembly-level simulator for the 8051 microcontroller.</p>
+          <div class="tags"><span>8051</span><span>Assembly</span><span>Simulation</span></div>
+          <div class="go">Win51E - Windows Driver for ESA 51E Trainer ↗</div>
+        </div>
+      </a>
+    </div>
   </div></section>
 
   <section class="view" id="research"><div class="in">
