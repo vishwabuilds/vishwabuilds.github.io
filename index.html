@@ -52,6 +52,7 @@ h2{font-size:clamp(30px,5vw,48px);font-weight:800;letter-spacing:-.035em;line-he
 .proj p{margin:0 0 16px;color:var(--muted);font-size:15px}
 .tags{display:flex;gap:6px;flex-wrap:wrap}
 .tags span{font:500 12px "JetBrains Mono",monospace;padding:4px 10px;border-radius:8px;background:var(--soft);border:1px solid var(--line);color:var(--muted)}
+.go{margin-top:18px;font-weight:600;font-size:14px;color:var(--accent)}
 .soon{display:inline-flex;align-items:center;gap:10px;font:500 15px "JetBrains Mono",monospace;padding:12px 18px;border:1px dashed #c9c9d6;border-radius:12px;color:var(--muted)}
 .soon i{width:8px;height:8px;border-radius:50%;background:var(--accent2);animation:blink 1.4s steps(1) infinite}
 .sub{color:var(--muted);max-width:480px;margin:0 0 24px}
@@ -79,14 +80,15 @@ h2{font-size:clamp(30px,5vw,48px);font-weight:800;letter-spacing:-.035em;line-he
   <section class="view" id="projects"><div class="in">
     <div class="eyebrow">// projects</div>
     <h2>Things I’ve built.</h2>
-    <article class="card proj">
+    <a class="card proj" href="https://vishwabuilds.github.io/pic_trainer/" target="_blank" rel="noopener">
       <div class="chip"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></div>
       <div>
         <h3>PIC16F877A Simulator</h3>
         <p>A simulator for the PIC16F877A 8-bit microcontroller.</p>
         <div class="tags"><span>PIC16F877A</span><span>Embedded</span><span>Simulation</span></div>
+        <div class="go">MPLAB IDE v8.30 - PIC16xx-IES Practice ↗</div>
       </div>
-    </article>
+    </a>
   </div></section>
 
   <section class="view" id="research"><div class="in">
