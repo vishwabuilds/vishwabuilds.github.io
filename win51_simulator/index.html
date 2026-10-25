@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Win51E - Windows Driver for ESA 51E Trainer</title>
+<style>
+:root{--desk:#7a8798;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--desk:#3a4350}}
+:root[data-theme=dark]{--desk:#3a4350}
+*{box-sizing:border-box}html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;background:var(--desk);font:12px Tahoma,"Segoe UI",Arial,sans-serif;color:#000;overflow:hidden}
+#app{height:100%;display:flex;flex-direction:column;background:#ece9d8}
+#tt{background:linear-gradient(#3d95ff,#0a5fd8 45%,#0a50c0);color:#fff;font-weight:700;padding:5px 8px;font-size:13px}
+#mb{display:flex;gap:2px;padding:1px 4px;position:relative;border-bottom:1px solid #aca899}
+#mb>span{padding:2px 8px;cursor:default}#mb>span:hover,#mb>span.on{background:#316ac5;color:#fff}
+.dd{position:absolute;top:21px;background:#fff;border:1px solid #666;box-shadow:2px 2px 6px #0005;z-index:999;min-width:170px}
+.dd div{padding:3px 18px;cursor:default}.dd div:hover{background:#316ac5;color:#fff}
+#tb{display:flex;gap:3px;padding:4px;flex-wrap:wrap;border-bottom:1px solid #aca899}
+#tb button{width:38px;height:38px;padding:0;font-size:19px;line-height:1;border:1px solid #888;background:linear-gradient(#fff,#d8d4c4);border-radius:3px}
+#tb button.asm{background:#17a0a0;color:#fff;font:bold 9px/10px "Courier New",monospace;border-color:#075}
+#tb button:hover{border-color:#316ac5}
+#tb svg{width:32px;height:32px;display:block;margin:auto}
+#mdi{flex:1;position:relative;overflow:hidden;background:var(--desk)}
+#sb{padding:2px 8px;border-top:1px solid #aca899;background:#ece9d8}
+.w{position:absolute;background:#ece9d8;border:2px solid #0a4fc4;border-top:0;border-radius:8px 8px 0 0;box-shadow:3px 3px 12px #0006;max-width:calc(100% - 6px)}
+.wt{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(#4b9bff,#0a5fd8 45%,#0a50c0);color:#fff;font-weight:700;padding:3px 4px 3px 8px;border-radius:7px 7px 0 0;cursor:move;touch-action:none;user-select:none}
+.x{background:#d9442a;border:1px solid #fff;border-radius:3px;color:#fff;width:20px;height:18px;padding:0;line-height:14px}
+.bd{padding:6px}.row{display:flex;gap:6px;align-items:center;margin:0 0 6px;flex-wrap:wrap}
+button{font:12px Tahoma,sans-serif;border:1px solid #003c74;border-radius:3px;background:linear-gradient(#fff,#ece9d8);padding:2px 10px;color:#000;cursor:pointer}
+input{font:bold 12px "Courier New",monospace;border:1px solid #7f9db9;padding:1px 3px;background:#fff;color:#000}
+.g,.mg,.rg{font:bold 13px/20px "Courier New",monospace;border:1px solid #777;overflow:auto;max-height:62vh}
+.g{background:#fff4ea;min-width:430px}.mg{background:#7ff;white-space:pre;padding:0 4px;min-width:560px}.rg{background:#cfefff;min-width:170px}
+.r{display:grid;grid-template-columns:26px 58px 110px 1fr;padding:0 4px}.r.h{border-bottom:1px solid #999;background:#ffe3cc}
+.r.p{background:#f8c4c4}.r.s{outline:1px solid #0a5fd8}
+.r input{width:100%;border:0;border-bottom:1px solid #000;padding:0;background:#fff}
+.r2{display:grid;grid-template-columns:1fr 60px;padding:0 4px}.r2.s{background:#0a5fd8;color:#fff}.r2.h{background:#0a3fc8;color:#fff}
+.mh{background:#1c3be0;color:#fff}.bt{display:flex;gap:6px;justify-content:center;margin-top:6px}
+.ov{position:fixed;inset:0;background:#0004;display:flex;align-items:center;justify-content:center;z-index:5000}
+.bx{background:#ece9d8;border:2px solid #0a4fc4;border-radius:8px 8px 0 0;min-width:260px;max-width:min(440px,92vw)}
+.bx p{margin:4px 0 8px;line-height:1.45}.bx label{display:block;margin:4px 0}
+.fl{height:110px;background:#fff;border:1px solid #7f9db9;overflow:auto;margin:4px 0}.fl div{padding:1px 6px;cursor:default}.fl div:hover{background:#316ac5;color:#fff}
+.xf label{display:grid;grid-template-columns:150px 1fr;gap:6px;align-items:center;color:#1a2fa8;font-weight:700;margin:5px 0}.bx select{font:12px Tahoma}
+</style></head><body>
+<div id="app"><div id="tt">Win51E - Windows Driver for ESA 51E Trainer</div><div id="mb"></div><div id="tb"></div><div id="mdi"></div><div id="sb">Ready</div></div>
+<script>
+const $=(s,e=document)=>e.querySelector(s);
+const M=new Uint8Array(65536),AM=new Uint8Array(65536),R=new Uint8Array(256);let pc=0x8000,timer=0;
+let CYC=0,TR=[],PC8={ctl:0,cfg:0,warn:0};
+const TL=500000,C2=new Set([0x02,0x12,0x22,0x32,0x80,0x73,0x83,0x93,0x10,0x20,0x30,0x40,0x50,0x60,0x70,0xD5,0xC0,0xD0,0xA3,0x90,0xE0,0xE2,0xE3,0xF0,0xF2,0xF3,0x75,0x72,0x82,0xA0,0xB0,0x92,0x43,0x53,0x63]);
+const ccy=o=>o==0x84||o==0xA4?4:(C2.has(o)||(o&15)==1||(o>=0x85&&o<=0x8F)||(o>=0xA6&&o<=0xAF)||(o>=0xB4&&o<=0xBF)||(o>=0xD8&&o<=0xDF))?2:1;
+const mx=(ad,v)=>{if(ad>=0xE800&&ad<=0xE803){const r=ad&3;if(r==3){if(v&128){PC8.ctl=v;PC8.cfg=1}}else if(r==0){if(PC8.cfg&&!(PC8.ctl&16)){if(CYC<=TL&&TR.length<2e5)TR.push([CYC,v])}else PC8.warn=1}}else M[ad]=v};
+const h2=(v,w=2)=>v.toString(16).toUpperCase().padStart(w,'0');
+const hx=(v,w)=>{const s=h2(v,w);return(/^[A-F]/.test(s)?'0':'')+s+'H'};
+const hv=s=>{s=s.replace(/h$/i,'');return /^[0-9a-f]{1,4}$/i.test(s)?parseInt(s,16):NaN};
+const sbm=t=>$('#sb').textContent=t;
+function reset(){TR=[];CYC=0;PC8={ctl:0,cfg:0,warn:0};R.fill(0);[0x80,0x90,0xA0,0xB0].forEach(a=>R[a]=255);R[0x81]=7}reset();
+function hardReset(){clearInterval(timer);timer=0;M.fill(0);AM.fill(0);reset();pc=0x8000;Object.values(W).forEach(w=>w.rs&&w.rs());refresh();sbm('Board reset: all memories, registers and the assembler buffer cleared')}
+/* ---------- symbols & operand parsing ---------- */
+const SFR={P0:0x80,SP:0x81,DPL:0x82,DPH:0x83,PCON:0x87,TCON:0x88,TMOD:0x89,TL0:0x8A,TL1:0x8B,TH0:0x8C,TH1:0x8D,P1:0x90,SCON:0x98,SBUF:0x99,P2:0xA0,IE:0xA8,P3:0xB0,IP:0xB8,PSW:0xD0,ACC:0xE0,B:0xF0};
+const BN={CY:0xD7,AC:0xD6,F0:0xD5,RS1:0xD4,RS0:0xD3,OV:0xD2,P:0xD0,EA:0xAF,ES:0xAC,ET1:0xAB,EX1:0xAA,ET0:0xA9,EX0:0xA8,TF1:0x8F,TR1:0x8E,TF0:0x8D,TR0:0x8C,IE1:0x8B,IT1:0x8A,IE0:0x89,IT0:0x88,RI:0x98,TI:0x99};
+function num(s){return/^[0-9][0-9A-F]*$/.test(s)?parseInt(s,16):null}
+function bitv(s){if(s in BN)return BN[s];let m=s.match(/^(.+)\.([0-7])$/);if(m){let a=m[1]in SFR?SFR[m[1]]:num(m[1]);if(a==null)return null;if(a>=32&&a<48)return(a-32)*8+ +m[2];if(a>=128&&a<256&&a%8==0)return a+ +m[2];return null}const n=num(s);return n!=null&&n<256?n:null}
+function mt(k,u){let n,m;switch(k){
+case'A':case'C':case'AB':case'DPTR':case'@DPTR':case'@A+DPTR':case'@A+PC':return u===k?0:-1;
+case'R':return(m=u.match(/^R([0-7])$/))?+m[1]:-1;
+case'@R':return(m=u.match(/^@R([01])$/))?+m[1]:-1;
+case'#8':case'#16':if(u[0]!='#')return-1;n=num(u.slice(1));return n!=null&&n<=(k=='#8'?255:65535)?n:-1;
+case'D':n=u in SFR?SFR[u]:num(u);return n!=null&&n<256?n:-1;
+case'B':n=bitv(u);return n==null?-1:n;
+case'/B':if(u[0]!='/')return-1;n=bitv(u.slice(1));return n==null?-1:n;
+default:n=num(u);return n!=null&&n<65536?n:-1}}
+/* ---------- instruction table ---------- */
+let S="NOP|00;AJMP J11|01;ACALL J11|11;LJMP J16|02;LCALL J16|12;RR A|03;RRC A|13;RL A|23;RLC A|33;INC A|04;INC D|05;INC @R|06;INC R|08;DEC A|14;DEC D|15;DEC @R|16;DEC R|18;INC DPTR|A3;JBC B,L|10;JB B,L|20;JNB B,L|30;RET|22;RETI|32;JC L|40;JNC L|50;JZ L|60;JNZ L|70;SJMP L|80;JMP @A+DPTR|73;MOVC A,@A+PC|83;MOVC A,@A+DPTR|93;DIV AB|84;MUL AB|A4;MOV D,D|85|1,0;MOV D,@R|86;MOV D,R|88;MOV D,#8|75;MOV D,A|F5;MOV DPTR,#16|90;MOV B,C|92;MOV C,B|A2;MOV @R,D|A6;MOV R,D|A8;MOV @R,#8|76;MOV R,#8|78;MOV A,#8|74;MOV A,D|E5;MOV A,@R|E6;MOV A,R|E8;MOV R,A|F8;MOV @R,A|F6;MOVX A,@R|E2;MOVX A,@DPTR|E0;MOVX @R,A|F2;MOVX @DPTR,A|F0;ORL C,B|72;ORL C,/B|A0;ANL C,B|82;ANL C,/B|B0;PUSH D|C0;POP D|D0;XCH A,D|C5;XCH A,@R|C6;XCH A,R|C8;XCHD A,@R|D6;SWAP A|C4;DA A|D4;CLR A|E4;CLR C|C3;CLR B|C2;SETB C|D3;SETB B|D2;CPL A|F4;CPL C|B3;CPL B|B2;CJNE A,#8,L|B4;CJNE A,D,L|B5;CJNE @R,#8,L|B6;CJNE R,#8,L|B8;DJNZ D,L|D5;DJNZ R,L|D8";
+[['ADD',0x20],['ADDC',0x30],['SUBB',0x90],['ORL',0x40],['ANL',0x50],['XRL',0x60]].forEach(([m,b],i)=>{const x=d=>(b+d).toString(16);S+=`;${m} A,#8|${x(4)};${m} A,D|${x(5)};${m} A,@R|${x(6)};${m} A,R|${x(8)}`;if(i>2)S+=`;${m} D,A|${x(2)};${m} D,#8|${x(3)}`});
+const E=['#8','#16','D','B','/B','L','J11','J16'],ROWS=[],DIS=[];
+S.split(';').forEach(s=>{const[sp,op,ord]=s.split('|'),i=sp.indexOf(' '),k=i<0?[]:sp.slice(i+1).split(',');
+const r={mn:i<0?sp:sp.slice(0,i),k,op:parseInt(op,16),ord:ord?ord.split(',').map(Number):k.map((x,j)=>E.includes(x)?j:-1).filter(j=>j>=0)};
+r.len=1+r.ord.reduce((s,j)=>s+(k[j]=='#16'||k[j]=='J16'?2:1),0);ROWS.push(r);
+const j11=k.includes('J11'),c=k.includes('R')?8:k.includes('@R')?2:j11?8:1;
+for(let n=0;n<c;n++)DIS[r.op+n*(j11?32:1)]={...r,n}});
+function asm(s,at){s=s.split(';')[0].trim();const m=s.match(/^([A-Za-z]+)(?:\s+(.*))?$/);if(!m)return{};
+const mn=m[1].toUpperCase(),ops=m[2]?m[2].split(',').map(x=>x.replace(/\s+/g,'').toUpperCase()):[];let err;
+if(mn=='MOV'&&ops.includes('B'))return{err:'In MOV, register B must be addressed as 0F0'};
+for(const r of ROWS){if(r.mn!=mn||r.k.length!=ops.length)continue;const v=r.k.map((k,i)=>mt(k,ops[i]));if(v.some(x=>x<0))continue;
+let op=r.op,e=[],bad;r.k.forEach((k,i)=>{if(k=='R'||k=='@R')op+=v[i]});
+for(const j of r.ord){const k=r.k[j],x=v[j];
+if(k=='#16'||k=='J16')e.push(x>>8,x&255);
+else if(k=='L'){const d=x-(at+r.len);if(d<-128||d>127)bad='Relative jump out of range';e.push(d&255)}
+else if(k=='J11'){if(((at+r.len)&0xF800)!=(x&0xF800))bad='Target outside current 2K page';op+=(x>>8&7)<<5;e.push(x&255)}
+else e.push(x)}
+if(!bad)return{b:[op,...e]};err=bad}
+return{err}}
+function dis(a,m=M){const o=m[a],d=DIS[o];if(!d)return{len:1,b:[o],t:'DB '+hx(o,2)};
+const b=[...Array(d.len).keys()].map(i=>m[(a+i)&65535]),v=[];let p=1;
+d.ord.forEach(j=>{const w=d.k[j]=='#16'||d.k[j]=='J16';v[j]=w?b[p]<<8|b[p+1]:b[p];p+=w?2:1});
+const t=d.k.map((k,i)=>{const x=v[i];switch(k){case'R':return'R'+d.n;case'@R':return'@R'+d.n;case'#8':return'#'+hx(x,2);case'#16':return'#'+hx(x,4);case'D':case'B':return hx(x,2);case'/B':return'/'+hx(x,2);
+case'L':return hx((a+d.len+(x<<24>>24))&65535,4);case'J11':return hx(((a+d.len)&0xF800)|(o>>5)<<8|x,4);case'J16':return hx(x,4);default:return k}}).join(',');
+return{len:d.len,b,t:d.mn+(t?' '+t:'')}}
+/* ---------- CPU ---------- */
+function step(){const p=pc,o=M[p],L=DIS[o]?DIS[o].len:1,f=i=>M[(p+i)&65535];pc=(p+L)&65535;CYC+=ccy(o);
+const n=o&15,h=o>>4,rb=()=>R[0xD0]&24,ri=()=>R[rb()+(n&1)],a=R[224];
+const src=()=>n==4?f(1):n==5?R[f(1)]:n<8?R[ri()]:R[rb()+(n&7)];
+const put=v=>{n==4?R[224]=v:n==5?R[f(1)]=v:n<8?R[ri()]=v:R[rb()+(n&7)]=v};
+const rel=i=>{pc=(pc+(f(i)<<24>>24))&65535};
+const bA=b=>b<128?32+(b>>3):b&0xF8,gb=b=>(R[bA(b)]>>(b&7))&1,sb=(b,v)=>{const q=bA(b);R[q]=v?R[q]|1<<(b&7):R[q]&~(1<<(b&7))};
+const cy=()=>R[0xD0]>>7,setc=v=>{R[0xD0]=v?R[0xD0]|128:R[0xD0]&127},fl=(m,v)=>{R[0xD0]=v?R[0xD0]|m:R[0xD0]&~m};
+const push=v=>{R[129]=(R[129]+1)&255;R[R[129]]=v},pop=()=>{const v=R[R[129]];R[129]=(R[129]-1)&255;return v};
+const dp=()=>R[131]<<8|R[130];
+if(o==0xA5||!o){}
+else if((o&31)==1)pc=(pc&0xF800)|(o>>5)<<8|f(1);
+else if((o&31)==17){push(pc&255);push(pc>>8);pc=(pc&0xF800)|(o>>5)<<8|f(1)}
+else if(o==2)pc=f(1)<<8|f(2);
+else if(o==0x12){push(pc&255);push(pc>>8);pc=f(1)<<8|f(2)}
+else if(o==0x22||o==0x32){pc=pop()<<8;pc|=pop()}
+else if(o==0x80)rel(1);
+else if(o==0x40){if(cy())rel(1)}else if(o==0x50){if(!cy())rel(1)}else if(o==0x60){if(!a)rel(1)}else if(o==0x70){if(a)rel(1)}
+else if(o==0x10){if(gb(f(1))){sb(f(1),0);rel(2)}}else if(o==0x20){if(gb(f(1)))rel(2)}else if(o==0x30){if(!gb(f(1)))rel(2)}
+else if(o==0x73)pc=(dp()+a)&65535;
+else if(o==0x83)R[224]=M[(pc+a)&65535];else if(o==0x93)R[224]=M[(dp()+a)&65535];
+else if(o==0x84){const b=R[240];setc(0);if(!b)fl(4,1);else{R[224]=a/b|0;R[240]=a%b;fl(4,0)}}
+else if(o==0xA4){const r=a*R[240];R[224]=r&255;R[240]=r>>8;setc(0);fl(4,r>255)}
+else if(o==3)R[224]=(a>>1|a<<7)&255;else if(o==0x13){R[224]=a>>1|cy()<<7;setc(a&1)}
+else if(o==0x23)R[224]=(a<<1|a>>7)&255;else if(o==0x33){R[224]=(a<<1&255)|cy();setc(a>>7)}
+else if(o==0xC4)R[224]=(a<<4|a>>4)&255;
+else if(o==0xD4){let r=a,c=cy();if((r&15)>9||R[0xD0]&64)r+=6;if(r>255)c=1;if(((r&255)>>4)>9||c)r+=0x60;if(r>255)c=1;setc(c);R[224]=r&255}
+else if(o==0xE4)R[224]=0;else if(o==0xF4)R[224]=a^255;
+else if(o==0xC3)setc(0);else if(o==0xD3)setc(1);else if(o==0xB3)setc(!cy());
+else if(o==0xC2)sb(f(1),0);else if(o==0xD2)sb(f(1),1);else if(o==0xB2)sb(f(1),!gb(f(1)));
+else if(o==0xA2)setc(gb(f(1)));else if(o==0x92)sb(f(1),cy());
+else if(o==0x72)setc(cy()|gb(f(1)));else if(o==0xA0)setc(cy()|!gb(f(1)));else if(o==0x82)setc(cy()&gb(f(1)));else if(o==0xB0)setc(cy()&!gb(f(1)));
+else if(o==0xC0)push(R[f(1)]);else if(o==0xD0)R[f(1)]=pop();
+else if(o==0x90){R[131]=f(1);R[130]=f(2)}
+else if(o==0xA3){const d=(dp()+1)&65535;R[131]=d>>8;R[130]=d&255}
+else if(o==0xE0)R[224]=M[dp()];else if(o==0xF0)mx(dp(),a);
+else if(o==0xE2||o==0xE3)R[224]=M[R[160]<<8|ri()];else if(o==0xF2||o==0xF3)mx(R[160]<<8|ri(),a);
+else if(o==0x85)R[f(2)]=R[f(1)];
+else if(o==0xD6||o==0xD7){const t=R[ri()];R[ri()]=(t&0xF0)|(a&15);R[224]=(a&0xF0)|(t&15)}
+else if(h==7&&n>=4){if(n==4)R[224]=f(1);else if(n==5)R[f(1)]=f(2);else put(f(1))}
+else if(h==14&&n>=5)R[224]=src();
+else if(h==15&&n>=5)put(a);
+else if(h==10&&n>=6)put(R[f(1)]);
+else if(h==8&&n>=6)R[f(1)]=src();
+else if(h==12&&n>=5){const t=src();put(a);R[224]=t}
+else if(h<=1&&n>=4){put((n==4?a:src())+(h?-1:1)&255)}
+else if(h==2||h==3||h==9){const s=src(),c=h==2?0:cy();let r,co,ac,ov;
+if(h==9){r=a-s-c;co=r<0;ac=(a&15)-(s&15)-c<0;ov=((a&127)-(s&127)-c<0)!=co}
+else{r=a+s+c;co=r>255;ac=(a&15)+(s&15)+c>15;ov=((a&127)+(s&127)+c>127)!=co}
+R[224]=r&255;setc(co);fl(64,ac);fl(4,ov)}
+else if(h>=4&&h<=6){const q=(x,y)=>h==4?x|y:h==5?x&y:x^y;
+if(n==2)R[f(1)]=q(R[f(1)],a);else if(n==3)R[f(1)]=q(R[f(1)],f(2));else R[224]=q(a,src())}
+else if(h==11){let x,y;if(o==0xB4){x=f(1);y=a}else if(o==0xB5){x=R[f(1)];y=a}else{x=f(1);y=src()}
+if(x!=y)rel(2);setc(y<x)}
+else if(o==0xD5){const v=R[f(1)]-1&255;R[f(1)]=v;if(v)rel(2)}
+else if(h==13&&n>=8){const q=rb()+(n&7),v=R[q]-1&255;R[q]=v;if(v)rel(1)}
+let x=R[224];x^=x>>4;x^=x>>2;x^=x>>1;fl(1,x&1);
+return pc===p}
+function go(){clearInterval(timer);TR=[];CYC=0;PC8={ctl:0,cfg:0,warn:0};sbm('Program running...  (press the red light to halt)');
+timer=setInterval(()=>{for(let i=0;i<30000;i++){if(step()){halt('Program halted (jump to self) at '+hx(pc,4));return}}refresh()},60)}
+function halt(m){clearInterval(timer);timer=0;sbm(m||'Halted at '+hx(pc,4));refresh()}
+/* ---------- windows ---------- */
+const W={};let z=10;
+function win(id,t,x,y,body,init){if(W[id]){W[id].style.zIndex=++z;return}
+const e=document.createElement('div');e.className='w';e.style.cssText=`left:${x}px;top:${y}px;z-index:${++z}`;
+e.innerHTML=`<div class=wt><span>${t}</span><button class=x>×</button></div><div class=bd>${body}</div>`;
+$('#mdi').append(e);W[id]=e;$('.x',e).onclick=()=>{e.remove();delete W[id]};
+const tb=$('.wt',e);tb.onpointerdown=ev=>{if(ev.target.closest('button'))return;const ox=ev.clientX-e.offsetLeft,oy=ev.clientY-e.offsetTop;tb.setPointerCapture(ev.pointerId);
+tb.onpointermove=m=>{e.style.left=Math.max(0,m.clientX-ox)+'px';e.style.top=Math.max(0,m.clientY-oy)+'px'};tb.onpointerup=()=>tb.onpointermove=null};
+e.onpointerdown=()=>e.style.zIndex=++z;init(e)}
+const refresh=()=>Object.values(W).forEach(w=>w.rf&&w.rf());
+function modal(msg,fields,cb,cancel){const ov=document.createElement('div');ov.className='ov';
+ov.innerHTML=`<div class=bx><div class=wt>Win51E</div><div class=bd><p>${msg}</p>${(fields||[]).map(f=>`<label>${f[0]} <input value="${f[1]}" size=${f[2]||7}></label>`).join('')}<div class=bt><button>OK</button>${cancel?'<button>Cancel</button>':''}</div></div></div>`;
+document.body.append(ov);const ins=[...ov.querySelectorAll('input')],bs=ov.querySelectorAll('button');
+const done=ok=>{ov.remove();if(ok||!cancel)cb&&cb(ins.map(i=>i.value.trim()))};
+bs[0].onclick=()=>done(1);if(cancel)bs[1].onclick=()=>ov.remove();
+ov.onkeydown=ev=>{if(ev.key=='Enter'){ev.preventDefault();done(1)}if(ev.key=='Escape')cancel?ov.remove():done(1)};
+(ins[0]||bs[0]).focus();ins[0]&&ins[0].select()}
+const EM='<svg viewBox="0 0 32 32" width="28" height="28" style="vertical-align:middle;margin-right:8px"><circle cx="16" cy="16" r="14" fill="#d62a1e" stroke="#fff" stroke-width="2"/><path d="M10 10l12 12M22 10L10 22" stroke="#fff" stroke-width="4" stroke-linecap="round"/></svg><b>Mnemonic error</b>, please try again.';
+/* Assembler */
+function openAsm(){win('asm','Assembler',16,8,`<div class=row>Start Address <input id=sa size=5 value=8000 maxlength=4> <button id=nw>New</button></div><div class=g id=al></div>`,e=>{
+let Ls=[],ap=0x8000,on=0;const sa=$('#sa',e),al=$('#al',e);
+const draw=f=>{al.innerHTML='<div class="r h"><i></i><b>Address</b><b>Object</b><b>Mnemonic</b></div>'+Ls.map(r=>`<div class="r${r.a==pc?' p':''}"><i>${r.a==pc?'-&gt;':''}</i><b>${h2(r.a,4)}</b><b>${r.b.map(x=>h2(x)).join(' ')}</b><b>${r.t}</b></div>`).join('')+`<div class=r><i></i><b>${h2(ap,4)}</b><b></b><input id=li spellcheck=false autocomplete=off autocapitalize=characters></div>`;
+const li=$('#li',e);if(f)li.focus();al.scrollTop=1e5;li.onkeydown=ev=>{if(ev.key!='Enter'||!li.value.trim())return;
+const r=asm(li.value,ap);if(!r.b){sbm(r.err||'Syntax error in mnemonic');modal(EM,0,()=>{li.focus();li.select()});return}
+r.b.forEach((v,i)=>AM[(ap+i)&65535]=v);if(!on){on=1;sa.disabled=true}
+Ls.push({a:ap,b:r.b,t:dis(ap,AM).t});ap=(ap+r.b.length)&65535;sbm('Assembled '+Ls[Ls.length-1].t);refresh();draw(1)}};
+sa.onkeydown=ev=>{if(ev.key!='Enter')return;const v=hv(sa.value);if(isNaN(v))return modal('Invalid address');ap=v;draw(1)};
+$('#nw',e).onclick=()=>{Ls=[];on=0;AM.fill(0);sa.disabled=false;sa.focus();draw(0)};
+e.rs=()=>{Ls=[];on=0;ap=0x8000;sa.value='8000';sa.disabled=false;draw(0)};
+e.rf=()=>draw(0);draw(1)})}
+/* Disassembly */
+function openDis(){win('dis','Disassembly',24,40,`<div class=row>Start Address <input id=sa size=5 value=8000> <button id=db>DisAssemble</button></div><div class=row><button id=sp>Set PC</button><button id=si>Step into</button><button id=as>Assemble</button><button id=ru>Run</button></div><div class=g id=dl></div>`,e=>{
+let st=0x8000,sel=-1,ad=[];
+const draw=()=>{ad=[];let a=st,h='<div class="r h"><i></i><b>Address</b><b>Object</b><b>Mnemonic</b></div>';
+for(let i=0;i<22;i++){const d=dis(a);ad.push(a);h+=`<div class="r${a==pc?' p':''}${a==sel?' s':''}" data-a="${a}"><i>${a==pc?'-&gt;':''}</i><b>${h2(a,4)}</b><b>${d.b.map(x=>h2(x)).join(' ')}</b><b>${d.t}</b></div>`;a=(a+d.len)&65535}$('#dl',e).innerHTML=h};
+e.rs=()=>{sel=-1;st=0x8000;$('#sa',e).value='8000'};
+e.rf=()=>{if(!ad.includes(pc)){st=pc;$('#sa',e).value=h2(pc,4)}draw()};
+$('#db',e).onclick=()=>{const v=hv($('#sa',e).value);if(isNaN(v))return modal('Invalid address');st=v;draw()};
+$('#sp',e).onclick=()=>{const v=hv($('#sa',e).value);if(isNaN(v))return modal('Invalid address');pc=v;st=v;sel=-1;refresh()};$('#si',e).onclick=()=>{step();refresh()};$('#ru',e).onclick=runDlg;
+$('#as',e).onclick=()=>{const a=sel>=0?sel:pc;modal('Assemble at '+h2(a,4),[['Mnemonic',dis(a).t.replace(/\b([0-9][0-9A-F]*)H\b/g,'$1'),24]],([t])=>{const r=asm(t,a);if(!r.b){sbm(r.err||'Syntax error in mnemonic');return modal(EM)}r.b.forEach((v,i)=>M[(a+i)&65535]=v);sbm('Assembled '+dis(a).t+' at '+h2(a,4));refresh()},1)};
+$('#dl',e).onclick=ev=>{const r=ev.target.closest('[data-a]');if(r){sel=+r.dataset.a;draw()}};draw()})}
+/* Registers */
+const rb=()=>R[0xD0]&24,rr=(n,a)=>[n,()=>R[a],v=>R[a]=v];
+const RG=[rr('A[E0]',224),rr('B[F0]',240),rr('SP[81]',129),rr('PSW[D0]',208),rr('DPH[83]',131),rr('DPL[82]',130),rr('TH0[8C]',140),rr('TL0[8A]',138),rr('TH1[8D]',141),rr('TL1[8B]',139),rr('P1[90]',144),rr('P3[B0]',176),['PCH',()=>pc>>8,v=>pc=v<<8|pc&255],['PCL',()=>pc&255,v=>pc=pc&0xFF00|v]];
+for(let i=0;i<8;i++)RG.push(['R'+i+'[0'+i+']',()=>R[rb()+i],v=>R[rb()+i]=v]);
+function openReg(){win('reg','Registers',560,10,`<div class=rg id=rl></div><div class=bt><button id=md>Modify</button><button id=rs>Reset</button></div>`,e=>{
+let sel=-1;const draw=()=>{$('#rl',e).innerHTML='<div class="r2 h"><b>Register</b><b>Value</b></div>'+RG.map((r,i)=>`<div class="r2${i==sel?' s':''}" data-i="${i}"><b>${r[0]}</b><b>${h2(r[1]())}</b></div>`).join('')+`<div class=r2><b>PSW(BIT)</b><b>${R[0xD0].toString(2).padStart(8,'0')}</b></div>`};
+$('#rl',e).onclick=ev=>{const r=ev.target.closest('[data-i]');if(r){sel=+r.dataset.i;draw()}};
+$('#md',e).onclick=()=>{if(sel<0)return modal('Select a register first');const r=RG[sel];modal('Modify '+r[0],[['Value (hex)',h2(r[1]())]],([v])=>{const x=hv(v);if(isNaN(x)||x>255)return modal('Invalid value');r[2](x);refresh()},1)};
+$('#rs',e).onclick=()=>{reset();refresh()};e.rf=draw;draw()})}
+/* Memory P / X / I */
+function openMem(t){const A=t=='I'?R:M;win('m'+t,{P:'Program Memory',X:'External Data Memory',I:'Internal Data Memory'}[t],40+Object.keys(W).length*20,70+Object.keys(W).length*14,`<div class=row>Start Address <input id=sa size=5 value=${t=='I'?'0000':'8000'}> <button id=sh>Show</button> <button id=mo>Modify...</button></div><div class=mg id=mg></div>`,e=>{
+let st=t=='I'?0:0x8000;const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const draw=()=>{const s=st&0xFFF0;let h='<div class=mh>Addr  '+[...Array(16).keys()].map(i=>' '+i.toString(16).toUpperCase()).join(' ')+'</div>';
+for(let r=0;r<16;r++){const a=(s+r*16)&65535;let b='',c='';if(t=='I'&&a>255)break;for(let i=0;i<16;i++){const v=A[(a+i)&65535];b+=h2(v)+' ';c+=v>31&&v<127?String.fromCharCode(v):'.'}h+=h2(a,4)+'  '+b+' '+esc(c)+'\n'}$('#mg',e).innerHTML=h};
+$('#sh',e).onclick=()=>{const v=hv($('#sa',e).value);if(isNaN(v))return modal('Invalid address');st=v;draw()};
+$('#mo',e).onclick=()=>modal('Modify memory',[['Address',h2(st,4)],['Value',h2(A[st])]],([a,v])=>{const x=hv(a),y=hv(v);if(isNaN(x)||isNaN(y)||y>255||(t=='I'&&x>255))return modal('Invalid entry');A[x]=y;refresh()},1);
+e.rf=draw;draw()})}
+/* Graph (DAC waveform) */
+function openGraph(){win('gr','Graph - DAC Waveform (8255 Port A, E800)',50,30,`<div class=row>Window <input id=wn size=6 value=4000> us &nbsp;Clock <input id=mh size=6 value=12> MHz <button id=rn>Run...</button></div><div style="position:relative;box-sizing:border-box;width:min(100%,640px);min-width:324px;aspect-ratio:16/9;border:2px inset #888"><canvas id=cv width=320 height=180 style="position:absolute;inset:0;width:100%;height:100%;display:block"></canvas></div><div id=rd style="font:bold 12px 'Courier New',monospace;margin-top:4px;min-height:16px"></div><div id=gm style="margin-top:2px;max-width:640px"></div>`,e=>{
+const cv=$('#cv',e),g=cv.getContext('2d'),W=320,H=180,L=26,RR=4,T=6,B=16,pw=W-L-RR,ph=H-T-B,S=Math.max(4,Math.ceil((window.devicePixelRatio||1)*3));cv.width=W*S;cv.height=H*S;
+const par=()=>[Math.max(1,+$('#wn',e).value||4000),12/(+$('#mh',e).value||12)];
+const draw=()=>{const[tm,us]=par(),X=t=>Math.round(L+t/tm*pw),Y=v=>Math.round(T+(1-v/255)*ph);
+g.setTransform(S,0,0,S,0,0);g.fillStyle='#000';g.fillRect(0,0,W,H);g.font='bold 9px "Courier New",monospace';g.textBaseline='top';
+const dot=(x1,y1,x2,y2)=>{g.strokeStyle='#2f9a2f';g.lineWidth=.45;g.setLineDash([.8,3.2]);g.beginPath();g.moveTo(x1+.5,y1+.5);g.lineTo(x2+.5,y2+.5);g.stroke();g.setLineDash([])};
+[0,64,128,192,255].forEach(v=>{dot(L,Y(v),L+pw,Y(v));g.fillStyle='#8f8';g.textAlign='left';g.fillText(h2(v),1,Y(v)-4)});
+const raw=tm/8,mag=10**Math.floor(Math.log10(raw)),st=[1,2,5,10].find(m=>m*mag>=raw)*mag,ms=tm>=5000;
+g.textAlign='center';for(let t=0;t<=tm+1e-9;t+=st){const x=X(t);dot(x,T,x,T+ph);g.fillStyle='#8f8';g.fillText(String(+(ms?t/1000:t).toFixed(2)),x,T+ph+3)}
+g.textAlign='left';g.fillText(ms?'ms':'us',1,T+ph+3);
+g.fillStyle='#3fa83f';g.fillRect(L,T,1,ph+1);g.fillRect(L,T+ph,pw+1,1);
+const col='#ffe14a',hl=(a,b,y)=>{g.fillStyle=col;g.fillRect(Math.min(a,b),y,Math.abs(b-a)+1,1)},vl=(x,a,b)=>{g.fillStyle=col;g.fillRect(x,Math.min(a,b),1,Math.abs(b-a)+1)};
+let px=X(0),py=Y(0);for(const[c,v]of TR){const t=c*us;if(t>tm)break;const x=X(t),y=Y(v);hl(px,x,py);vl(x,py,y);px=x;py=y}hl(px,X(tm),py);
+$('#gm',e).textContent=TR.length?TR.length+' write(s) to the DAC in '+CYC+' cycles ('+(CYC*us).toFixed(0)+' us).':(PC8.warn?'Port A is not an output yet. Write a control word such as 80 to E803 first (MOV DPTR,#E803 / MOV A,#80 / MOVX @DPTR,A).':'Nothing written to the DAC yet. Download the program, Set PC, then Run.')};
+cv.onpointermove=ev=>{const[tm,us]=par(),r=cv.getBoundingClientRect(),t=((ev.clientX-r.left)/r.width*W-L)/pw*tm;if(t<0||t>tm)return;let v=0;for(const[c,w]of TR){if(c*us<=t)v=w;else break}$('#rd',e).textContent='t = '+t.toFixed(1)+' us   DAC = '+h2(v)+'H ('+v+')  ~ '+(v/255*5).toFixed(2)+' V'};
+$('#wn',e).oninput=$('#mh',e).oninput=draw;$('#rn',e).onclick=runDlg;e.rf=draw;draw()})}
+/* ---------- HEX files: Upload / Download ---------- */
+const BS=String.fromCharCode(92),DR='D:'+BS+'gr1'+BS+'8051'+BS+'sample';
+let FS={'Desktop':{},'My Documents':{},[DR]:{}};
+try{const s=localStorage.getItem('w51fs');if(s)FS=JSON.parse(s)}catch(x){}
+const saveFS=()=>{try{localStorage.setItem('w51fs',JSON.stringify(FS))}catch(x){}};
+const toHex=(A,s,e)=>{let o='';for(let a=s;a<=e;a+=16){const n=Math.min(16,e-a+1),b=[n,a>>8,a&255,0];for(let i=0;i<n;i++)b.push(A[a+i]);b.push((256-b.reduce((x,y)=>x+y,0)%256)&255);o+=':'+b.map(x=>h2(x)).join('')+'\n'}return o+':00000001FF\n'};
+const fromHex=t=>{const mem=[];let lo=1e9,hi=-1;for(const l0 of t.split(/\r?\n/)){const l=l0.trim();if(!l)continue;if(!/^:([0-9A-F]{2})+$/i.test(l))return null;const b=l.slice(1).match(/../g).map(x=>parseInt(x,16));if(b.reduce((x,y)=>x+y,0)%256||b.length!=b[0]+5)return null;if(b[3]==1)break;if(b[3])return null;for(let i=0;i<b[0];i++){const a=(b[1]<<8|b[2])+i;mem.push([a,b[4+i]]);lo=Math.min(lo,a);hi=Math.max(hi,a)}}return hi<0?null:{mem,lo,hi}};
+function dlg(t,body){const ov=document.createElement('div');ov.className='ov';ov.style.zIndex=4000;ov.innerHTML=`<div class=bx><div class=wt>${t}</div><div class=bd>${body}</div></div>`;document.body.append(ov);return ov}
+function fdlg(save,dir,cb){const ov=dlg(save?'Save HEX File':'Open HEX File',`<div class=row>Look in <select id=ld>${Object.keys(FS).map(k=>`<option>${k}</option>`).join('')}</select></div><div class=fl id=fl></div><label>File name <input id=fn size=26></label><label>Files of type <select><option>Hex Files(*.hex)</option></select></label><div class=bt><button id=ok>${save?'Save':'Open'}</button><button id=cn>Cancel</button></div>`);
+ov.style.zIndex=4500;const ld=$('#ld',ov),fn=$('#fn',ov),fl=$('#fl',ov);ld.value=dir;
+const ls=()=>{fl.innerHTML=Object.keys(FS[ld.value]||{}).filter(n=>/\.hex$/i.test(n)).map(n=>`<div data-n="${n}">${n}</div>`).join('')};
+const ok=()=>{let n=fn.value.trim();if(!n)return;if(!/\.hex$/i.test(n))n+='.hex';if(!save&&!FS[ld.value][n])return modal('File not found');ov.remove();cb(ld.value,n)};
+ld.onchange=ls;fl.onclick=e=>{const d=e.target.closest('[data-n]');if(d)fn.value=d.dataset.n};fl.ondblclick=ok;
+$('#ok',ov).onclick=ok;$('#cn',ov).onclick=()=>ov.remove();ov.onkeydown=e=>{if(e.key=='Enter')ok();if(e.key=='Escape')ov.remove()};ls();fn.focus()}
+function xfer(up){let dir='Desktop',nm='',ph=null;
+const ov=dlg(up?'Upload':'Download',`<div class=xf><label>File Name /Path [.Hex] <span><input id=fp size=24 readonly> <button id=br>Browse...</button></span></label><label>Memory [P I D] <select id=mm><option>P</option><option>I</option><option>D</option></select></label><label>Start Address <input id=sa size=5 value=0000${up?'':' disabled'}></label><label>End Address <input id=ea size=5 value=0000${up?'':' disabled'}></label>${up?'':'<label>Offset Address <input id=oa size=5 value=0000></label>'}</div><div class=bt><button id=ok>OK</button><button id=cn>Cancel</button></div>`);
+const fp=$('#fp',ov),sa=$('#sa',ov),ea=$('#ea',ov),mm=$('#mm',ov);
+$('#br',ov).onclick=()=>fdlg(up,dir,(d,n)=>{dir=d;nm=n;fp.value=d+BS+n;if(!up){ph=fromHex(FS[d][n]);if(!ph){nm='';fp.value='';return modal('Invalid HEX file')}sa.value=h2(ph.lo,4);ea.value=h2(ph.hi,4)}});
+$('#cn',ov).onclick=()=>ov.remove();
+$('#ok',ov).onclick=()=>{if(!nm)return modal('Choose a .hex file with Browse');const I=mm.value=='I';
+if(up){const s=hv(sa.value),e=hv(ea.value);if(isNaN(s)||isNaN(e)||s>e||(I&&e>255))return modal('Invalid address range');FS[dir][nm]=toHex(mm.value=='P'?AM:I?R:M,s,e);saveFS();sbm(`Uploaded ${h2(s,4)}-${h2(e,4)} to ${dir+BS+nm}`)}
+else{const o=hv($('#oa',ov).value);if(isNaN(o))return modal('Invalid offset');ph.mem.forEach(([a,v])=>{(I?R:M)[(a+o)&(I?255:65535)]=v});sbm(`Downloaded ${nm} (${h2(ph.lo,4)}-${h2(ph.hi,4)}) at offset ${h2(o,4)}`);refresh()}
+ov.remove()}}
+/* ---------- toolbar & menus ---------- */
+const na=()=>modal('Trainer board not connected. This practice build simulates the board: use the Assembler, then Run.');
+const runDlg=()=>modal('Run from address',[['Address',h2(pc,4)]],([a])=>{const v=hv(a);if(isNaN(v))return modal('Invalid address');pc=v;refresh();go()},1);
+const help=()=>modal('<b>Assembler rules</b><br>Numbers are hex with no H suffix (MOV A,#13 / SJMP 8007). Typing an H gives Mnemonic error, though the listings still display H.<br>A hex number that starts with a letter needs a leading 0 (#0FF, 0E803, 0F0). Without it the line is rejected.<br>The accumulator is written as A (MOV A,#80). In MOV, register B cannot be written as B: use its address (MOV 0F0,#01). All other instructions use common syntax (MUL AB, DIV AB, INC A).<br>No labels: jumps and calls take absolute addresses.<br>Workflow: Assembler, then Upload (save a .hex), then Download (Browse, OK), then Disassembly: Set PC / Run.<br>A line is only accepted when valid, otherwise <i>Mnemonic error</i>.<br>End a program with SJMP to its own address.');
+const ACT={up:['Upload',()=>xfer(1)],dn:['Download',()=>xfer(0)],reg:['Registers',openReg],dis:['Disassembly',openDis],asm:['Assembler',openAsm],P:['Program Memory',()=>openMem('P')],X:['External Data Memory',()=>openMem('X')],I:['Internal Data Memory',()=>openMem('I')],gr:['Graph (DAC waveform)',openGraph],step:['Step into',()=>{step();refresh()}],run:['Run...',runDlg],go:['Go from PC',()=>go()],halt:['Halt',()=>halt()],rst:['Reset board',hardReset],cmd:['Command',na],help:['Help',help],cls:['Close all windows',()=>Object.values(W).forEach(w=>$('.x',w).click())]};
+const sv=b=>`<svg viewBox="0 0 32 32" aria-hidden="true">${b}</svg>`;
+const base=t=>`<rect x="2" y="20" width="28" height="10" fill="#1c1c1c"/><rect x="3.5" y="21.5" width="25" height="7" fill="#3a3a3a"/><text x="16" y="27" font-size="4.6" font-weight="700" fill="#eee" text-anchor="middle" font-family="Arial">${t}</text>`;
+const pm=l=>sv(`<rect x="3" y="4" width="26" height="24" fill="#fff" stroke="#222" stroke-width="1.5"/><rect x="3" y="4" width="26" height="6" fill="#2a3ea8"/><text x="16" y="25" font-size="16" font-weight="900" text-anchor="middle" fill="#111" font-family="Arial">${l}</text>`);
+const lt=on=>sv('<rect x="9" y="2" width="14" height="28" rx="4" fill="#222" stroke="#000"/>'+[['#d33',8],['#da3',16],['#3c3',24]].map(([c,y],i)=>`<circle cx="16" cy="${y}" r="3.8" fill="${i==on?c:'#4a4a4a'}"/>`).join(''));
+const pins=[8,13,18,23];
+const ICO={
+up:sv('<polygon points="16,2 25,12 19,12 19,17 13,17 13,12 7,12" fill="#2fa84f" stroke="#145a28"/>'+base('UPLOAD')),
+dn:sv('<polygon points="16,18 25,8 19,8 19,2 13,2 13,8 7,8" fill="#2fa84f" stroke="#145a28"/>'+base('DOWNLOAD')),
+reg:sv('<circle cx="10" cy="12" r="6" fill="#dfe6ee" stroke="#222" stroke-width="2"/><circle cx="22" cy="12" r="6" fill="#dfe6ee" stroke="#222" stroke-width="2"/><path d="M15 11h2M5 18l-3 10M27 18l3 10" stroke="#222" stroke-width="3" stroke-linecap="round"/>'),
+dis:sv(`<g stroke="#333" stroke-width="1.6">${pins.map(v=>`<path d="M${v} 2v5M${v} 25v5M2 ${v}h5M25 ${v}h5"/>`).join('')}</g><rect x="7" y="7" width="18" height="18" fill="#e7d24a" stroke="#333" stroke-width="1.6"/><circle cx="16" cy="16" r="5" fill="#333"/><circle cx="16" cy="16" r="2" fill="#e7d24a"/>`),
+asm:sv('<rect x="1" y="1" width="30" height="30" fill="#2fb3b3" stroke="#0b6666"/>'+['0101','1010','0101'].map((t,i)=>`<text x="16" y="${10+i*9}" font-size="9" font-weight="700" text-anchor="middle" fill="#111" font-family="Courier New,monospace">${t}</text>`).join('')),
+P:pm('P'),X:pm('X'),I:pm('I'),
+step:sv('<rect x="2" y="6" width="28" height="20" fill="#dfe6f5" stroke="#222" stroke-width="1.5"/><rect x="2" y="6" width="28" height="4" fill="#2a3ea8"/><path d="M6 18h12" stroke="#111" stroke-width="3"/><polygon points="17,12 26,18 17,24" fill="#111"/>'),
+run:sv('<circle cx="19" cy="5" r="3.5" fill="#d22"/><path d="M18 9l-3 8 5 4-1 5M15 17l-6 2M18 11l6 4M15 17l-4 8" stroke="#d22" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/><text x="16" y="31" font-size="6" font-weight="700" text-anchor="middle" fill="#111" font-family="Arial">Run</text>'),
+cmd:sv('<rect x="2" y="5" width="28" height="22" fill="#fff" stroke="#222" stroke-width="1.5"/><rect x="2" y="5" width="28" height="5" fill="#2a3ea8"/><text x="4.5" y="22" font-size="8" font-weight="700" fill="#111" font-family="Courier New,monospace">&gt;Cmd</text>'),
+gr:sv('<rect x="2" y="4" width="28" height="24" fill="#111" stroke="#666" stroke-width="2"/><path d="M5 16h22M16 7v18" stroke="#2a5a2a" stroke-width="1"/><path d="M5 23h5v-10h6v10h6v-10h5" stroke="#5f5" stroke-width="2" fill="none" shape-rendering="crispEdges"/>'),
+rst:sv('<path d="M26 16a10 10 0 1 1-3.5-7.6" fill="none" stroke="#d22" stroke-width="3.5" stroke-linecap="round"/><polygon points="27,3 28,13 18,11" fill="#d22"/>'+base('RESET')),
+go:lt(2),halt:lt(0),
+help:sv('<path d="M5 6l16-3 6 4v20l-16 4-6-4z" fill="#7a3fa0" stroke="#2a1040" stroke-width="1.4"/><path d="M5 6l6 4v20" fill="none" stroke="#2a1040"/><path d="M11 10l16-3" stroke="#e8c0f0" stroke-width="1.5"/><path d="M14 27l11-8" stroke="#d33" stroke-width="3"/>')};
+const TB=['up','dn','reg','dis','asm','P','X','I','gr','rst','step','run','cmd','go','halt','help'];
+$('#tb').innerHTML=TB.map(k=>`<button title="${ACT[k][0]}" data-k="${k}"${k=='asm'?' class=asm':''}>${ICO[k]}</button>`).join('');
+$('#tb').onclick=ev=>{const b=ev.target.closest('button');if(b)ACT[b.dataset.k][1]()};
+const MN={Files:['up','dn'],View:['reg','dis','asm','P','X','I','gr'],Run:['run','step','go','halt','rst'],'External I/F Commands':['cmd'],Window:['cls'],Help:['help']};
+const mb=$('#mb');mb.innerHTML=Object.keys(MN).map(k=>`<span>${k}</span>`).join('');
+const closeM=()=>{mb.querySelectorAll('.dd').forEach(d=>d.remove());mb.querySelectorAll('.on').forEach(s=>s.classList.remove('on'))};
+mb.onclick=ev=>{const s=ev.target.closest('span');if(!s)return;const was=s.classList.contains('on');closeM();if(was)return;s.classList.add('on');
+const d=document.createElement('div');d.className='dd';d.style.left=s.offsetLeft+'px';d.innerHTML=MN[s.textContent].map(k=>`<div data-k="${k}">${ACT[k][0]}</div>`).join('');mb.append(d);
+d.onclick=e2=>{const i=e2.target.closest('[data-k]');closeM();if(i)ACT[i.dataset.k][1]()}};
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#mb'))closeM()});
+</script></body></html>
